@@ -1,0 +1,272 @@
+---
+title: "Learn How to Transform and Visualize MER Data in R"
+output: learnr::tutorial
+runtime: shiny_prerendered
+---
+
+```{r setup, include=FALSE}
+library(learnr)
+library(tidyverse)
+library(readxl)
+df <- read_delim("MER_Structured_Datasets_OU_IM_FY22-25_20240816_v1_1.txt", 
+                 "\t", 
+                 escape_double = FALSE,
+                 trim_ws = TRUE,
+                 col_types = cols(.default = col_character(), 
+                                  targets = col_double(),
+                                  qtr1 = col_double(),
+                                  qtr2 = col_double(),
+                                  qtr3 = col_double(),
+                                  qtr4 = col_double(),
+                                  cumulative = col_double())
+)
+
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+## Introduction
+
+This mini tutorial app is meant to teach you the basics of data management and data visualization with R. The examples and exercises used in this tutorial use PEPFAR data.
+
+This tutorial uses the *tidyverse* package
+
+Note, this tutorial is by no means comprehensive but should give you a good starting point in your journey to mastering R!
+
+### Prerequisites
+
+-   [R](https://www.r-project.org/)
+
+-   [RStudio](https://posit.co/) (either locally installed or cloud)
+
+-   A dataset!
+
+### Contact
+
+Comments, questions, or requests for further training: pcx5\@cdc.gov
+
+## Preparing your Environment
+
+### Installing Packages
+
+While base R has a lot of functions and out-of-the-box, the benefit of R being an open source software environment is that others can and have made additional functionality available for everyone to use.
+
+You can install packages through the RStudio interface under the Packages pane or through the console with the following command `install.packages()`. You would put the name of the package you want to install between the parentheses. This is called the argument of the function. Be sure to read the documentation for the function to ensure you are using the function correctly!
+
+For example, to install the package "[tidyverse](https://www.tidyverse.org/)":
+
+```{r eval=FALSE}
+install.packages("tidyverse")
+```
+
+For this tutorial, we already installed some packages for you so you don't need to run any code but pay attention to how to write it.
+
+### Loading Packages
+
+To use the functions within the packages, you will need to load them first using the `library()` command. The library function takes the name of the package without the quotation marks. Again, you'll need to read the documentation to know how each function works!
+
+I already loaded the following packages for this tutorial so you don't need to run any code, but pay attention to how to write it:
+
+```{r eval=FALSE}
+library(tidyverse)
+library(readxl)
+```
+
+## Importing your Data
+
+R has numerous functions for importing your data into the environment.
+
+For example:
+
+-   `read.csv()` lets you import data from plain text files with tabular or comma-separated values (CSV).
+-   `read.delim()`
+
+If you want to import data from other sources not included in base R, you can most likely find a package to help you.
+
+-   *readxl* has a `read_excel()` that will let you import data from specific worksheets or ranges within Excel workbooks
+
+-   *haven* has functions for importing from SPSS and SAS files
+
+-   *DBI* allows you to connect to SQL databases
+
+-   And more! You can usually find whatever you need from the community!
+
+In order to capture your data in the environment, you will need to use the **assignment** `<-` operator to assign the data to an object. You can name this object anything you want, the more descriptive the better! I'm going to name this data object `df` for data frame, which are tightly coupled collections of variables which share many of the properties of matrices and of lists, used as the fundamental data structure by most of R's modeling software.
+
+I've also imported the data for you as well, but don't worry you'll be doing all the work from here on!
+
+```{r eval=FALSE}
+df <- read_delim("file_name", 
+                 "\t", 
+                 escape_double = FALSE,
+                 trim_ws = TRUE,
+                 col_types = cols(.default = col_character(), 
+                                  targets = col_double(),
+                                  qtr1 = col_double(),
+                                  qtr2 = col_double(),
+                                  qtr3 = col_double(),
+                                  qtr4 = col_double(),
+                                  cumulative = col_double()
+                 )
+)
+```
+
+## Understanding your Data
+
+### Get a List of your Column Names
+
+### Using Summary
+
+Now that your data is assigned to an object called `df`, we can do stuff to it!
+
+For example, the `summary()` function is a good starting point for understanding your dataset.
+
+Per the function's description: **`summary`** is a generic function used to produce result summaries of the results of various model fitting functions. The function invokes particular [**`methods`**](https://www.rdocumentation.org/link/methods?package=base&version=3.6.2) which depend on the [**`class`**](https://www.rdocumentation.org/link/class?package=base&version=3.6.2) of the first argument.
+
+It's probably easier to see what this does by testing it out.
+
+I've written out the R code required to get a summary of your dataframe, so just press Run Code (right hand corner):
+
+```{r summary, exercise=TRUE}
+summary(df)
+```
+
+## Filtering
+
+`filter()` lets you use a logical test to extract specific rows from a data frame. To use `filter()`, pass it the data frame into the function followed by one or more logical tests. `filter()` will return every row that passes each logical test.
+
+For example, we can `filter()` for just the rows that belong to Lesotho.
+
+Click Run Code to give it a try!
+
+```{r filter, exercise=TRUE}
+df <- filter(df, country == "Lesotho")
+```
+
+Note, the assignment operator will replace your original `df` with the newly filtered Lesotho `df`. If you don't want to replace your `df` name it something else like `df_lesotho`...
+
+### Multiple Conditions with & and \|
+
+### %in% Operator
+
+%in%
+
+### Filter Exercises
+
+Write code to return just the rows for FY2023:
+
+```{r filter_fy, exercise=TRUE}
+```
+
+```{r filter_fy-solution}
+df <- filter(df, fiscal_year == "2023")
+```
+
+Return the rows for the number of people tested:
+
+```{r filter_hts, exercise=TRUE}
+```
+
+```{r filter_hts-solution}
+df <- filter(df, indicator == "HTS_TST")
+```
+
+Return the rows for sex is Female and age_2019 is 20-24 (you can add additional criteria with the "&" symbol:
+
+```{r filter_age_sex, exercise=TRUE}
+```
+
+```{r filter_age_sex-hint}
+df <- filter(df, sex=="Female" & age_2019=="20-24")
+
+```
+
+Return the rows for
+
+## Rename a Column
+
+Let's learn how to rename columns with `rename()`.
+
+The function works like this:
+
+-   rename(df, new_name = original_name)
+
+Let's practice! Rename the age_2019 column to fine_age:
+
+```{r rename, exercise=TRUE}
+
+```
+
+```{r rename-hint}
+df <- rename(df, fine_age=age_2019)
+
+```
+
+## Selecting or Deleting Column(s)
+
+You can use `select()` to select a few columns or drop columns. This is called subsetting.
+
+Please create a new dataset, called test4 from msd and delete regionuid, operatingunituid, pre_rgnlztn_hq_mech_code, prime_partner_duns, and award_number.
+
+```{r}
+
+```
+
+If you put a "-" in front of your list of columns, you'll drop columns instead. This is useful if you are dropping less columns than you are selecting.
+
+```{r}
+
+```
+
+You can also select a range of columns if you know what columns are next to each other.
+
+```{r}
+
+```
+
+You can also use column indices to select. Remember R starts numbering on 1!
+
+```{r}
+
+```
+
+### Select Exercises
+
+## Mutate
+
+### If Else
+
+### Case When
+
+## Group By and Summarize
+
+Grouping is an important (and somewhat tricky) concept for data management in R.
+
+The function `group_by()` takes an existing tbl and converts it into a grouped tbl where operations are performed "by group". `ungroup()` removes grouping.
+
+Note, grouping doesn't change the way the data looks just how the data interacts with dplyr verbs.
+
+For example, you can `group_by()` then mutate and add a
+
+One common pair of operations is `group_by()` then `summarize()`.
+
+### "na.rm"
+
+`na.rm = TRUE` allows you to do calculations ignoring any na values.
+
+To understand how NA works in R, try running the following examples:
+
+```{r na, exercise=TRUE}
+1+1
+NA+1
+NA+NA
+mean(1,3,5,5)
+mean(1,3,5,5,NA)
+```
+
+## Pipe %\>%
+
+Piping is an essential allowing you to chain functions together. Each result become the argument of the next function through
+
+## Putting It All Together
+
+### Transform the MSD to Long
