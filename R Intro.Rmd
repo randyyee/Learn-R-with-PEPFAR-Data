@@ -1,5 +1,5 @@
 ---
-title: "Learn How to Transform and Visualize MER Data in R"
+title: "Part 1: Learn How to Transform with MER Data in R"
 output: learnr::tutorial
 runtime: shiny_prerendered
 ---
@@ -8,7 +8,7 @@ runtime: shiny_prerendered
 library(learnr)
 library(tidyverse)
 library(readxl)
-df <- read_delim("MER_Structured_Datasets_OU_IM_FY22-25_20240816_v1_1.txt", 
+df <- read_delim("Genie-OU_IM-Global-Frozen-2024-09-03.txt", 
                  "\t", 
                  escape_double = FALSE,
                  trim_ws = TRUE,
@@ -24,17 +24,19 @@ df <- read_delim("MER_Structured_Datasets_OU_IM_FY22-25_20240816_v1_1.txt",
 knitr::opts_chunk$set(echo = FALSE)
 ```
 
-## Introduction
+## SI Up-Skilling in R Series
 
-This mini tutorial app is meant to teach you the basics of data management and data visualization with R. The examples and exercises used in this tutorial use PEPFAR data.
+This mini tutorial app is meant to teach you the basics of data management with R using PEPFAR data. The examples and exercises used in this tutorial use the MER Structured Dataset (datasets you can download from DATIM and PEPFAR Panorama.
 
-This tutorial uses the *tidyverse* package
+This tutorial uses the *tidyverse* package. Most of the data transformation functions come from *dplyr* package within *tidyverse*.
 
-Note, this tutorial is by no means comprehensive but should give you a good starting point in your journey to mastering R!
+The tutorial is structured to teach you R topics through the transformation of the PEPFAR MER Structured Dataset (MSD) so it is by no means comprehensive but should give you a good starting point in your journey to mastering R!
 
 ### Prerequisites
 
--   [R](https://www.r-project.org/)
+If you'd like to use R following this tutorial, you'll need the following:
+
+-   Install [R](https://www.r-project.org/)
 
 -   [RStudio](https://posit.co/) (either locally installed or cloud)
 
@@ -42,19 +44,23 @@ Note, this tutorial is by no means comprehensive but should give you a good star
 
 ### Contact
 
-Comments, questions, or requests for further training: pcx5\@cdc.gov
+Comments, questions, or requests for further training:
+
+[Randy Yee](mailto:pcx5@cdc.gov)
+
+*HIDMSB's Data Systems and Analytics Team*
 
 ## Preparing your Environment
 
 ### Installing Packages
 
-While base R has a lot of functions and out-of-the-box, the benefit of R being an open source software environment is that others can and have made additional functionality available for everyone to use.
+While base R has a lot of functions and out-of-the-box, the benefit of R being an open source software environment is that others can make additional packages for others to use, extending the utility of base R.
 
 You can install packages through the RStudio interface under the Packages pane or through the console with the following command `install.packages()`. You would put the name of the package you want to install between the parentheses. This is called the argument of the function. Be sure to read the documentation for the function to ensure you are using the function correctly!
 
 For example, to install the package "[tidyverse](https://www.tidyverse.org/)":
 
-```{r eval=FALSE}
+```         
 install.packages("tidyverse")
 ```
 
@@ -66,10 +72,297 @@ To use the functions within the packages, you will need to load them first using
 
 I already loaded the following packages for this tutorial so you don't need to run any code, but pay attention to how to write it:
 
-```{r eval=FALSE}
+```         
 library(tidyverse)
 library(readxl)
 ```
+
+## Objects and Data Types
+
+In R, **objects** and **data types** are foundational concepts that allow you to store and manipulate data. Here's a breakdown:
+
+### **Objects in R**
+
+An **object** in R is essentially a container for data. Everything in R, including variables, functions, and datasets, is an object. Objects are created using the assignment operator `<-`, like this:
+
+``` r
+x <- 10
+```
+
+This line of code creates an object `x` that stores the value `10`.
+
+Some common types of objects in R are:
+
+1.  **Vectors**: A sequence of data elements of the same type.
+    -   Example: `x <- c(1, 2, 3)`
+2.  **Lists**: A collection of elements that can be of different types.
+    -   Example: `my_list <- list(1, "apple", TRUE)`
+3.  **Matrices**: A two-dimensional collection of elements of the same type.
+    -   Example: `my_matrix <- matrix(1:6, nrow = 2)`
+4.  **Data frames**: A table-like structure where each column can be of a different type.
+    -   Example: `df <- data.frame(Name = c("A", "B"), Age = c(23, 25))`
+5.  **Functions**: Objects that encapsulate code that can be reused.
+    -   Example: `my_function <- function(x) { return(x^2) }`
+
+### **Data Types in R**
+
+R supports several **data types** that define the kind of data stored in an object. The main ones include:
+
+1.  **Numeric**: This is the default type for numbers in R, which includes both integers and real numbers (decimals).
+    -   Example: `x <- 3.5` (numeric value)
+    -   Example: `y <- 3` (still numeric, not an integer by default)
+2.  **Integer**: A special type for whole numbers. You can force an integer by adding an `L` to the number.
+    -   Example: `x <- 5L` (integer)
+3.  **Character (String)**: Text data in R, enclosed in quotes.
+    -   Example: `name <- "John"`
+4.  **Logical (Boolean)**: This type represents TRUE or FALSE values.
+    -   Example: `x <- TRUE`
+5.  **Factor**: Categorical data, often used to represent categories with levels.
+    -   Example: `gender <- factor(c("Male", "Female", "Male"))`
+6.  **Complex**: Complex numbers (numbers with real and imaginary parts).
+    -   Example: `z <- 1 + 2i`
+7.  **Raw**: Raw bytes, used rarely in specialized applications.
+
+### Key R Functions for Checking Object Types
+
+You can use these functions to check the type of data stored in an object: - `class(x)` – Returns the type of object. - `typeof(x)` – Provides the internal type of the object. - `str(x)` – Displays the structure of the object.
+
+For example:
+
+``` r
+x <- 10
+class(x)    # "numeric"
+typeof(x)   # "double"
+str(x)      # num 10
+```
+
+Understanding these concepts is crucial because different operations in R behave differently depending on the object's type and structure.
+
+### Data Structures
+
+#### **1. Vectors**
+
+A **vector** in R is a basic data structure that contains elements of the same type. Vectors can store numbers, characters, or logical values. They are created using the `c()` function (which stands for "combine").
+
+Types of Vectors:
+
+-   **Numeric Vector**: Stores numbers.
+
+    ``` r
+    numeric_vector <- c(1, 2, 3, 4)
+    ```
+
+-   **Character Vector**: Stores strings (text).
+
+    ``` r
+    char_vector <- c("apple", "banana", "cherry")
+    ```
+
+-   **Logical Vector**: Stores Boolean values (`TRUE` or `FALSE`).
+
+    ``` r
+    logical_vector <- c(TRUE, FALSE, TRUE)
+    ```
+
+Vector Operations:
+
+You can perform operations on vectors, and R will apply the operation element-wise.
+
+``` r
+x <- c(1, 2, 3)
+y <- c(4, 5, 6)
+
+sum_vector <- x + y  # Results in c(5, 7, 9)
+```
+
+Accessing Elements:
+
+You can access specific elements of a vector using indexing.
+
+``` r
+x <- c(10, 20, 30, 40)
+x[2]  # Returns 20, the second element of the vector
+```
+
+Note, R starts counting at 1.
+
+#### **2. Factors**
+
+A **factor** is a data structure used for storing **categorical variables** (variables that take on a limited, fixed number of possible values, often called "levels"). Factors are useful in statistical modeling and data analysis. It's also useful for controlling the order you want for data visualizations.
+
+Example:
+
+``` r
+gender <- factor(c("Male", "Female", "Male", "Female"))
+print(gender)
+```
+
+Factors automatically assign underlying integer codes to represent the different categories, and you can see the levels by calling `levels()`.
+
+``` r
+levels(gender)  # Returns "Female" "Male"
+```
+
+Factors are commonly used in data frames when dealing with categorical data like "Yes/No", "Low/Medium/High", etc.
+
+#### **3. Matrices**
+
+A **matrix** is a two-dimensional data structure where each element must be of the same type (like a numeric vector). Matrices are essentially vectors with two dimensions.
+
+Creating a Matrix:
+
+You can create a matrix using the `matrix()` function. Specify the number of rows (`nrow`) and columns (`ncol`).
+
+``` r
+my_matrix <- matrix(1:6, nrow = 2, ncol = 3)
+print(my_matrix)
+```
+
+This creates a matrix like this:
+
+```         
+     [,1] [,2] [,3]
+[1,]    1    3    5
+[2,]    2    4    6
+```
+
+Matrix Operations:
+
+You can perform arithmetic operations on matrices, similar to vectors. Matrix multiplication is done using `%*%`.
+
+``` r
+mat1 <- matrix(1:4, nrow = 2)
+mat2 <- matrix(5:8, nrow = 2)
+
+product <- mat1 %*% mat2
+```
+
+#### **4. Data Frames**
+
+A **data frame** is a two-dimensional table-like structure, where each column can be of a different type (numeric, character, factor, etc.). Data frames are one of the most common structures for storing datasets in R.
+
+Creating a Data Frame:
+
+You can create a data frame using the `data.frame()` function.
+
+``` r
+df <- data.frame(
+  Name = c("Alice", "Bob", "Carol"),
+  Age = c(23, 30, 25),
+  Gender = factor(c("Female", "Male", "Female"))
+)
+print(df)
+```
+
+Accessing Elements in Data Frames:
+
+You can access columns of a data frame using `$` or indexing:
+
+``` r
+df$Name  # Access the "Name" column
+df[1, ]  # Access the first row
+```
+
+Important Features of Data Frames:
+
+-   Data frames can contain different types of data in different columns.
+-   You can manipulate them using functions like `subset()`, `dplyr` package functions, and more.
+
+#### **5. Lists**
+
+A **list** is a flexible data structure that can store different types of elements (including vectors, data frames, functions, and even other lists) in a single object. Lists are highly versatile and allow for complex data to be stored together.
+
+Creating a List:
+
+``` r
+my_list <- list(
+  name = "John",
+  age = 25,
+  scores = c(95, 82, 88),
+  info = data.frame(height = 170, weight = 70)
+)
+print(my_list)
+```
+
+Accessing Elements in a List:
+
+You can access list elements using double square brackets `[[ ]]` or the `$` operator for named elements.
+
+``` r
+my_list$name         # Access "name" element
+my_list[[3]]         # Access the third element (scores)
+my_list$info$height  # Access "height" from the "info" data frame within the list
+```
+
+Nesting Lists:
+
+Lists can contain other lists, making them useful for storing hierarchical or complex data structures.
+
+``` r
+nested_list <- list(a = list(x = 1, y = 2), b = list(z = 3))
+```
+
+### Summary
+
+-   **Vectors**: Homogeneous, one-dimensional arrays of data.
+-   **Factors**: Categorical data types with a fixed number of possible values.
+-   **Matrices**: Two-dimensional arrays with elements of the same type.
+-   **Data Frames**: Table-like structures where each column can contain different types of data.
+-   **Lists**: Flexible containers that can store heterogeneous data types, including other lists.
+
+These data structures are core to working with data in R, and understanding them is crucial for efficient data analysis and manipulation.
+
+## The Assignment Operator
+
+The R language likes to `<-` as the assignment operator. Using `<-` let's you "save" a result as a variable or object in your environment.
+
+Per base R's documentation:
+
+> #### Description
+>
+> Assign a value to a name.
+>
+> #### Usage
+>
+> ```         
+> x <- value # This is the typical usage
+> x <<- value 
+> value -> x 
+> value ->> x  
+> x = value 
+> ```
+>
+> #### Arguments
+>
+> |         |                                    |
+> |---------|------------------------------------|
+> | `x`     | a variable name (possibly quoted). |
+> | `value` | a value to be assigned to `x`.     |
+>
+> #### Details
+>
+> There are three different assignment operators: two of them have leftwards and rightwards forms.
+>
+> The operators `<-` and `=` assign into the environment in which they are evaluated. The operator `<-` can be used anywhere, whereas the operator `=` is only allowed at the top level (e.g., in the complete expression typed at the command prompt) or as one of the subexpressions in a braced list of expressions.
+>
+> The operators `<<-` and `->>` are normally only used in functions, and cause a search to be made through parent environments for an existing definition of the variable being assigned. If such a variable is found (and its binding is not locked) then its value is redefined, otherwise assignment takes place in the global environment. Note that their semantics differ from that in the S language, but are useful in conjunction with the scoping rules of **R**. See ‘The R Language Definition’ manual for further details and examples.
+>
+> In all the assignment operator expressions, `x` can be a name or an expression defining a part of an object to be replaced (e.g., `z[[1]]`). A syntactic name does not need to be quoted, though it can be (preferably by [backtick](https://stat.ethz.ch/R-manual/R-devel/library/base/help/backtick.html)s).
+
+```{r obj, exercise=TRUE}
+# Assign the value 42 to x 
+x <- 42 
+# Run x to get back the value stored 
+x 
+# Assign a string to y 
+y <- "hello" 
+y 
+# Replace x with something else 
+x <- "there" 
+x
+```
+
+Note, in this tutorial objects are not saved from exercise to exercise except for the raw dataset, `df`.
 
 ## Importing your Data
 
@@ -79,10 +372,11 @@ For example:
 
 -   `read.csv()` lets you import data from plain text files with tabular or comma-separated values (CSV).
 -   `read.delim()`
+-   etc.
 
 If you want to import data from other sources not included in base R, you can most likely find a package to help you.
 
--   *readxl* has a `read_excel()` that will let you import data from specific worksheets or ranges within Excel workbooks
+-   *readxl* has a `read_excel()` function that will let you import data from specific worksheets or ranges within Excel workbooks
 
 -   *haven* has functions for importing from SPSS and SAS files
 
@@ -90,11 +384,13 @@ If you want to import data from other sources not included in base R, you can mo
 
 -   And more! You can usually find whatever you need from the community!
 
-In order to capture your data in the environment, you will need to use the **assignment** `<-` operator to assign the data to an object. You can name this object anything you want, the more descriptive the better! I'm going to name this data object `df` for data frame, which are tightly coupled collections of variables which share many of the properties of matrices and of lists, used as the fundamental data structure by most of R's modeling software.
+You can even import using the little table and arrow icon in the "Environment tab" of your RStudio IDE.
+
+In order to capture your data in the environment, you will need to use the **assignment** `<-` operator to assign the data to an object. If you import the data without assignment, your data will not be available for you to manipulate or use! You can name this object anything you want, the more descriptive the better! But for this simple tutorial I'm going to name this data object `df` for data frame.
 
 I've also imported the data for you as well, but don't worry you'll be doing all the work from here on!
 
-```{r eval=FALSE}
+```         
 df <- read_delim("file_name", 
                  "\t", 
                  escape_double = FALSE,
@@ -110,58 +406,188 @@ df <- read_delim("file_name",
 )
 ```
 
+[Again in this tutorial, `df` is the name of the raw data. Remember it!]{.underline}
+
 ## Understanding your Data
 
 ### Get a List of your Column Names
 
-### Using Summary
-
 Now that your data is assigned to an object called `df`, we can do stuff to it!
 
-For example, the `summary()` function is a good starting point for understanding your dataset.
+For example, the `colnames()` function returns a list of all the column names of the dataframe.
+
+I've written out the R code required to get a column names of your dataframe, so just press Run Code (right hand corner):
+
+```{r colnames, exercise=TRUE}
+colnames(df)
+```
+
+### Get the Unique Elements of a Vector or Column
+
+You can also check the elements within a column with `unique()`.
+
+```{r unique_column, exercise=TRUE}
+unique(df$country)
+
+# Try with some other columns!
+```
+
+### Viewing Your Dataframe
+
+And the most important check is to actually view the dataframe itself! If you click on the object in your RStudio Environment, `view()` will be called automatically allowing you to see the dataframe in a new tab in the IDE.
+
+Otherwise you can use:
+
+```{r view, exercise=TRUE}
+view(df)
+
+```
+
+### Using Summary
+
+The `summary()` function is a good starting point for understanding your dataset.
 
 Per the function's description: **`summary`** is a generic function used to produce result summaries of the results of various model fitting functions. The function invokes particular [**`methods`**](https://www.rdocumentation.org/link/methods?package=base&version=3.6.2) which depend on the [**`class`**](https://www.rdocumentation.org/link/class?package=base&version=3.6.2) of the first argument.
 
 It's probably easier to see what this does by testing it out.
 
-I've written out the R code required to get a summary of your dataframe, so just press Run Code (right hand corner):
+Press Run Code to try it out:
 
 ```{r summary, exercise=TRUE}
 summary(df)
+```
+
+### Tables with `table()` and `prop.table()`
+
+In R, the `table()` function is used to create a contingency table of counts for categorical variables. It's useful for quickly summarizing data to see the frequency of different categories.
+
+The `prop.table()` function takes the output of `table()` and converts the counts into proportions, either for the whole table or by rows/columns. This is particularly helpful when you want to express the counts as percentages of the total.
+
+These two functions are very handy for patient-level data where you'd be doing a lot of counting!
+
+**Basic Usage of `table()`**
+
+This creates a frequency table for the `sex` column, showing the number of male and female entries (emphasis on entries).
+
+```{r table, exercise=TRUE}
+table(df$sex)
+
+
+```
+
+**Using `prop.table()`** This converts the count of `sex` into proportions (relative frequencies).
+
+```{r ptable, exercise=TRUE}
+prop.table(table(df$sex))
+
+prop.table(table(df$country, df$sex))
+```
+
+You can also calculate proportions by rows or columns:
+
+```{r ptable2, exercise=TRUE}
+# Proportions by rows 
+prop.table(table(df$country, df$sex), margin = 1)  
+# Proportions by columns 
+prop.table(table(df$country, df$sex), margin = 2)
 ```
 
 ## Filtering
 
 `filter()` lets you use a logical test to extract specific rows from a data frame. To use `filter()`, pass it the data frame into the function followed by one or more logical tests. `filter()` will return every row that passes each logical test.
 
-For example, we can `filter()` for just the rows that belong to Lesotho.
+This is the same as the filter you use in Excel tables.
+
+For example, we can `filter()` for just the rows that belong to Lesotho. The `==` operator can be used to find which rows are equal to "Lesotho".
 
 Click Run Code to give it a try!
 
 ```{r filter, exercise=TRUE}
 df <- filter(df, country == "Lesotho")
+df # To see the output
 ```
 
-Note, the assignment operator will replace your original `df` with the newly filtered Lesotho `df`. If you don't want to replace your `df` name it something else like `df_lesotho`...
+If you run the function without assigning the results, your work will not be saved! Note, the assignment operator will replace your original `df` with the newly filtered Lesotho `df`. If you don't want to replace your `df` name it something else like `df_lesotho`...
 
-### Multiple Conditions with & and \|
+It's always a good idea to give a new object name to the newly transformed dataframe in case you find any errors you can just rerun the step before.
+
+### Comparison Operators
+
+You have already tried the equality operator. Some other operators to know are:
+
+-   equal to: ==
+
+-   not equal: !=
+
+-   greater than: \>
+
+-   greater than or equal to: \>=
+
+-   less than: \<
+
+-   less than or equal to: \<=
+
+Comparison operators will evaluate to either True or False.
+
+```{r compare, exercise=TRUE}
+5>6
+7>5
+# Try comparing some other values
+```
+
+### Multiple Conditions with logical operators & and \|
+
+You can chain multiple conditions using "and" ( & ) and "or" ( \| ).
+
+The `AND` operator takes two logical values and returns `TRUE` only if both values are `TRUE` themselves. This means that `TRUE & TRUE` evaluates to `TRUE`, but that `FALSE & TRUE`, `TRUE & FALSE` and `FALSE & FALSE` evaluates to `FALSE`.
+
+The `OR` operator `|` works similarly to the `AND` operator `&`, but the difference is that only one of the logical values needs to be equal to `TRUE` for the entire `OR` operation to evaluate to `TRUE`.
+
+```{r logical, exercise=TRUE}
+5>6 & 6>5 # Will evaluate FALSE since the first statement is FALSE
+5>4 & 4>5 # Will evaluate FALSE since the second statement is FALSE
+5>4 & 6>5 # Will evaluate TRUE since both are TRUE
+
+5>6 | 6>5 # Will evaluate TRUE since the second statement is TRUE
+
+# Try making some other statements yourself
+# You can include as many conditional statements as you want
+```
 
 ### %in% Operator
 
-%in%
+`%in%` allows you check if a value matches a value in a list.
+
+For example, `"Tanzania" %in% c("Angola", "Lesotho", "Nigeria", "Tanzania")` will return `TRUE` because the country appears in the list.
+
+```{r in_list, exercise=TRUE}
+"Tanzania" %in% c("Angola", "Lesotho", "Nigeria", "Tanzania")
+
+```
+
+To test if a value is within a column in your dataframe, you can use the `%in%` together with the `unique()` function:
+
+```{r}
+"Tanzania" %in% unique(df$country)
+"USA" %in% unique(df$country)
+```
 
 ### Filter Exercises
 
-Write code to return just the rows for FY2023:
+Write code to return just the rows for CDC only:
 
 ```{r filter_fy, exercise=TRUE}
 ```
 
-```{r filter_fy-solution}
-df <- filter(df, fiscal_year == "2023")
+```{r filter_fy-hint}
+df <- filter(df, funding_agency == "...")
 ```
 
-Return the rows for the number of people tested:
+```{r filter_fy-solution}
+df <- filter(df, funding_agency == "CDC")
+```
+
+Return the rows for only the HTS_TST indicator, the number of people tested:
 
 ```{r filter_hts, exercise=TRUE}
 ```
@@ -176,11 +602,46 @@ Return the rows for sex is Female and age_2019 is 20-24 (you can add additional 
 ```
 
 ```{r filter_age_sex-hint}
-df <- filter(df, sex=="Female" & age_2019=="20-24")
+df <- filter(df, "conditional 1" & "conditional 2")
 
 ```
 
-Return the rows for
+```{r filter_age_sex-solution}
+df <- filter(df, sex=="Female" & age_2019=="20-24")
+```
+
+Return the rows for those countries who have 2023 cumulative TX_NEW more than 200,000:
+
+```{r TX_NEW, exercise=TRUE}
+
+```
+
+```{r TX_NEW-hint}
+df <- filter(df, indicator=="" & fiscal_year=="" & cumulative > )
+
+```
+
+You can also use the `%in%` operator together with the `filter()` to return the rows for just the elements you want in a list. Return the rows for the Angola, Eswatini, Nigeria, and South Africa:
+
+```{r multiple_countries, exercise=TRUE}
+# First try filtering with multiple &'s
+
+# Now try filtering with %in%
+```
+
+```{r multiple_countries-hint}
+# First try filtering with multiple &'s
+df <- filter(df, country == "" & country == "" ...)
+df
+# Now try filtering with %in%
+df <- filter(df, country %in% c())
+df
+
+```
+
+```{r multiple_countries-solution}
+df <- filter(df, country %in% c("Angola", "Eswatini", "Nigeria", "South Africa"))
+```
 
 ## Rename a Column
 
@@ -188,16 +649,28 @@ Let's learn how to rename columns with `rename()`.
 
 The function works like this:
 
--   rename(df, new_name = original_name)
+`rename(df, new_name = original_name)`
 
 Let's practice! Rename the age_2019 column to fine_age:
 
 ```{r rename, exercise=TRUE}
+df <- 
+# Tip use colnames(df) after you rename to see your change!
 
 ```
 
 ```{r rename-hint}
 df <- rename(df, fine_age=age_2019)
+colnames(df)
+```
+
+You can rename multiple columns using a list `c()`.
+
+For example, `rename(df, c(fine_age=age_2019, agency=funding_agency, testing_entry_point=modality))`
+
+Rename *fiscal_year* to *fy*, *age_2019* to *fine_age*, *funding_agency* to *agency*:
+
+```{r rename2, exercise=TRUE}
 
 ```
 
@@ -205,49 +678,164 @@ df <- rename(df, fine_age=age_2019)
 
 You can use `select()` to select a few columns or drop columns. This is called subsetting.
 
-Please create a new dataset, called test4 from msd and delete regionuid, operatingunituid, pre_rgnlztn_hq_mech_code, prime_partner_duns, and award_number.
+-   select(df, column(s))
 
-```{r}
+Try selecting just the indicator column:
+
+```{r select1, exercise=TRUE}
+select(df, indicator)
+
+```
+
+Please create a new dataset with just the country, indicator, fiscal year, and cumulative columns. Use a list `c()`.
+
+```{r select2, exercise=TRUE}
+select(df, c(country, indicator, fiscal_year, cumulative))
 
 ```
 
 If you put a "-" in front of your list of columns, you'll drop columns instead. This is useful if you are dropping less columns than you are selecting.
 
-```{r}
+```{r select3, exercise=TRUE}
+select(df, -c(country, indicator, fiscal_year, cumulative))
 
 ```
 
 You can also select a range of columns if you know what columns are next to each other.
 
-```{r}
+```{r select4, exercise=TRUE}
+select(df, operatingunit:country)
 
 ```
 
 You can also use column indices to select. Remember R starts numbering on 1!
 
-```{r}
+```{r select5, exercise=TRUE}
+select(df ,c(1,3,7))
 
 ```
 
-### Select Exercises
+Select also allows you to rename columns while selecting.
+
+```{r select6, exercise=TRUE}
+select(df, c(country, fine_age=age_2019))
+
+```
+
+## Conditional Statements: If Else
+
+What is **`if-else`?**
+
+-   `if-else` is used for conditional execution in R.
+
+-   Executes one block of code if a condition is `TRUE`, and another block if it's `FALSE`.
+
+-   Use of `{}` to contain entire expressions
+
+`if (condition) {   # Code to execute if the condition is TRUE } else {   # Code to execute if the condition is FALSE }`
+
+Try out the `if-else` statement:
+
+```{r ifelse, exercise=TRUE}
+x <- 2
+
+if (x>3) {
+  print("x is greater than 3") # print() just prints whatever is in the function call to the console
+} else {
+  print("x is less than or equal to 3")
+}
+
+# Now try changing the value of x to 4
+```
+
+If you have multiple if's you'd like to account for, you can insert additional conditional statements with "else if"
+
+```{r ifelse2, exercise=TRUE}
+x <- 3
+
+if (x>3) {
+  print("x is greater than 3") # print() just prints whatever is in the function call to the console
+} else if (x<3){
+  print("x is less than 3")
+} else {
+  print("x equals 3")
+}
+
+# Now try changing the value of x to 4
+```
+
+You can include as many "else if"'s as you want. You just need to end your statement with an "else".
 
 ## Mutate
 
-### If Else
+`mutate()` allows you to create new variables or modify existing ones in a data frame.
 
-### Case When
+`df <- mutate(df, new_column = expression)`
+
+-   `df`: The dataframe you are working with.
+
+-   `new_column`: The name of the new or modified column.
+
+-   `expression`: The calculation or transformation to apply.
+
+Examples:
+
+```{r mutate, exercise=TRUE}
+# When you mutate a new column, it'll appear at the end of your dataframe
+df <- mutate(df, test = 3) # Make a new column called test and just fill all the rows with 3
+
+df <- mutate(df, test = "hello") # Make a new column called test and fill it with the string "hello"
+df
+```
+
+Most times you'll want to create a new column that uses other columns in mathematical or conditional calculations. This is where your conditional statements come in!
+
+```{r mutate2, exercise=TRUE}
+df <- mutate(df, test = if_else(str_detect(indicator, "HTS"), "Testing", "Other"))
+
+select(df, c(indicator, test))
+```
+
+### case_when
+
+`case_when()` allows you to write a bunch of if-else statements without the need to type out all the if's and else's and curly brackets.
+
+For example, let's group indicators by program area:
+
+```{r casewhen, exercise=TRUE}
+df <- mutate(df, program_area = case_when(
+  str_detect(indicator, "HTS") ~"Testing",
+  indicator=="TX_PVLS" ~"Viral Load",
+  str_detect(indicator, "TX") ~"Treatment",
+  TRUE ~"Others"
+))
+
+select(df, indicator, program_area) # Using select so you can easily see the new column made with the indicator column to doublecheck the logic
+```
+
+Note that because I'm checking for which rows contain TX_PVLS first, the value will be saved for TX_PVLS even though the next line satisfies the str_detect condition for TX_PVLS it will not overwrite the value I specified.
+
+Also note the use of "\~" to say what the value should be if the condition(s) is satisfied on the left side.
 
 ## Group By and Summarize
 
-Grouping is an important (and somewhat tricky) concept for data management in R.
+Grouping is an important (and somewhat tricky) concept for data management in R. For this section, I want you to think about the Excel pivot table which uses these fundamental concepts at its core. And I find that a lot of people learning summarize and pivoting end up developing a deeper understanding of Excel pivot tables.
 
 The function `group_by()` takes an existing tbl and converts it into a grouped tbl where operations are performed "by group". `ungroup()` removes grouping.
 
 Note, grouping doesn't change the way the data looks just how the data interacts with dplyr verbs.
 
-For example, you can `group_by()` then mutate and add a
+For example, you can `group_by()` then mutate to add a new column based on groups.
 
 One common pair of operations is `group_by()` then `summarize()`.
+
+```{r groupandsummarize, exercise=TRUE}
+df_filter <- filter(df, standardizeddisaggregate == 'Total Numerator')
+df_grouped <- group_by(df_filter, country, fiscal_year, indicator)
+df_summarized <- summarize(df_grouped, total = sum(cumulative))
+
+df_summarized
+```
 
 ### "na.rm"
 
@@ -259,14 +847,165 @@ To understand how NA works in R, try running the following examples:
 1+1
 NA+1
 NA+NA
-mean(1,3,5,5)
-mean(1,3,5,5,NA)
+sum(1,3,5,5)
+sum(1,3,5,5,NA)
+```
+
+It's very important to think about NA's or missing values in your dataset as they can affect your calculations!
+
+The default parameter of `sum()` is `na.rm=FALSE`. `na.rm=TRUE` removes any NA's from the calculation.
+
+Compare:
+
+```{r na2, exercise=TRUE}
+sum(1,3,5,5,NA,9,2,6,NA,7)
+sum(1,3,5,5,NA,9,2,6,NA,7,na.rm=TRUE) # Note the function is smart enough to know what is an input and what is a parameter argument
+```
+
+### Now add "na.rm=TRUE" to Summarize
+
+Compare the results to the code up top!
+
+```{r groupandsummarize2, exercise=TRUE}
+df_filter <- filter(df, standardizeddisaggregate == 'Total Numerator')
+df_grouped <- group_by(df_filter, country, fiscal_year, indicator)
+df_summarized <- summarize(df_grouped, total = sum(cumulative, na.rm=TRUE)) # na.rm=TRUE added here!
+
+df_summarized
+```
+
+You should see that all the rows have values now. Some of the rows up top had `NA` due to R adding rows with values and `NA`'`s`.
+
+## Pivoting
+
+You are probably familiar with the pivot tables in Excel. I find it helpful to think about pivot tables for this section (hopefully this will help you understanding pivoting a bit more as well as what Excel pivot tables are doing under the hood).
+
+You can either `pivot_longer()`, taking column names and dumping them into one column with their values in another, or `pivot_wider()` taking a column values and turning them into column headers with values from another column underneath the newly created columns.
+
+Let's take the MSD which has multiple columns with values ("targets", "qtr1", "qtr2", ..., "cumulative").
+
+Let's take the value columns and pivot them longer:
+
+```{r pivot, exercise=TRUE}
+pivot_longer(df, targets:cumulative, names_to = "period", values_to = "value")
+
+```
+
+Note the arguments:
+
+-   `df` - the data we are working with.
+
+-   `targets:cumulative` - the range of columns I want to pivot. I know targets and cumulative are the range of columns I want in my dataset, but I can also input a list of columns I want to "pivot" with c("targets", "qtr1", "qtr2", "qtr3", "qtr4", "cumulative")
+
+-   `names_to` - the name of the new column I want to dump the column headers to
+
+-   `values_to` - the name of the new column I want to dump the values to
+
+We can also undo with `pivot_wider()` or pivot a different column wide like the indicator column to create columns for each indicator:
+
+```{r pivot2, exercise=TRUE}
+df1 <- pivot_longer(df, targets:cumulative, names_to = "period", values_to = "value")
+
+df2 <- pivot_wider(df1, names_from = "indicator", values_from = "value")
+df2
+
+```
+
+## Unite
+
+`unite()` allows you to combine columns together.
+
+```{r unite, exercise=TRUE}
+unite(df, indicator, c("indicator", "numeratordenom"), sep = "_")
+
+```
+
+This is useful for the MSD to create a period column with both fiscal year and qtr after pivoting:
+
+```{r unite2, exercise=TRUE}
+df1 <- pivot_longer(df, targets:cumulative, names_to = "period", values_to = "value")
+
+unite(df1, period, c("fiscal_year", "period"), sep = ";")
+
 ```
 
 ## Pipe %\>%
 
-Piping is an essential allowing you to chain functions together. Each result become the argument of the next function through
+Piping is an essential allowing you to chain functions together reducing the need to reassign or create new objects each transformation. This function comes from the *magrittr* package. Each result gets transferred to the argument of the next function.
 
-## Putting It All Together
+Compare this code of individual steps:
+
+```{r pipe1, exercise=TRUE}
+df <- filter(df, country=="Lesotho")
+df <- filter(df, indicator %in% c("HTS_TST", "HTS_TST_POS", "TX_NEW", "TX_CURR", "TX_PVLS"))
+df <- rename(df, fine_age=age_2019)
+df
+
+```
+
+with this piped code of the same steps:
+
+```{r pipe2, exercise=TRUE}
+df <- df %>% # df gets passed to the next function, filter
+  filter(country=="Lesotho") %>% # No need to rewrite df in the function since dplyr knows what is being worked on
+  filter(indicator %in% c("HTS_TST", "HTS_TST_POS", "TX_NEW", "TX_CURR", "TX_PVLS")) %>%
+  rename(fine_age=age_2019)
+df
+
+```
+
+Note, base R also has a pipe, "\|\>", which is a simplified version of the *magrittr* pipe. We won't get into the differences of these two functions but you can read more about it online if you would like.
+
+## Putting It All Together Exercise
+
+In this capstone exercise, you'll put all the skills you learned to transform the MSD into a long format (one observation or value per row).
 
 ### Transform the MSD to Long
+
+The steps are as follows:
+
+1.  Take the `cumulative`, `qtrs`, and `targets` columns and pivot longer
+
+2.  Unite the `fiscal_year` column with the new column with the `cumulative`, `qtrs`, and `targets` labels to create a `period` column
+
+3.  Add a `population` column by checking if the row has any age/sex information. Use `age_2019`. If yes, label the row "general population". If not, check if there is a KP label in another column and if there is a value (MSM, FSW, TG, PWID, etc.) label it "kp". Otherwise, label the rest "unknown".
+
+4.  Then group by and summarize the values.
+
+Write your script below:
+
+```{r capstone, exercise=TRUE}
+
+```
+
+```{r capstone-hint}
+df_final <- df %>%
+  pivot_longer(targets:cumulative, names_to = "period", values_to = "value") %>%
+  unite(period, c("fiscal_year", "period")) %>%
+  mutate(age_2019 = ifelse(age_2019 == "N/A", NA, age_2019)) %>%
+  mutate(population = case_when(!is.na(age_2019) | !is.na(sex) ~"general population",
+                                is.na(age_2019) & is.na(sex) & !is.na(otherdisaggregate) ~"kp",
+                                TRUE ~"Unknown"))
+                                
+df_final %>%filter(otherdisaggregate=="FSW") %>%
+select(country, period, indicator, age_2019, sex, otherdisaggregate, population)
+  
+```
+
+## Putting It All Together Review
+
+Hi! You made it! Again, this short tutorial is meant only to give you the basics of some of the functions in *dplyr* we use for data management. Hopefully, this gives you the confidence to explore and learn more on your own!
+
+### Tips
+
+-   Don't feel the need to pipe all the steps at once
+
+-   Every couple of transformations assign the result to a copy of the variable like `df1` so you can double check your work
+
+-   Read the documentation!
+
+-   Or reach out for support :)
+
+### What's Next
+
+The next part of this SI Up-Skilling in R series will be in data visualizations. Later chapters will cover mapping/GIS, data science, automation, and many more!
